@@ -1,36 +1,40 @@
 package br.com.devmedia.crawler.prodcons.simples;
 
+import java.util.List;
+import java.util.Queue;
 import java.util.Random;
 
+import br.com.devmedia.crawler.prodcons.model.DadosLink;
+
 public class ProdutorBasico implements Runnable {
-   private ControleProcessamento controle;
+   private Queue<DadosLink> filaTrabalho;
+   private List<DadosLink> linksDb;
+   public static boolean continuaProcessamento = true;
    
-   public ProdutorBasico(ControleProcessamento controle) {
-      this.controle = controle;
+   public ProdutorBasico(Queue<DadosLink> filaTrabalho, List<DadosLink> linksDb) {
+      this.filaTrabalho = filaTrabalho;
+      this.linksDb = linksDb;
    }
 
    @Override
    public void run() {
       Random random = new Random();
       
-      for (int i = 0; i < controle.getDbLinkCount(); i++) {
+      for (DadosLink link : linksDb) {
          
-         // aguarda por um periodo de 0 a 2 segundos
          try {
             Thread.sleep(random.nextInt(3));
          } catch (InterruptedException e) {}
          
-         // adiciona o id de um link na fila para processamento.
-         synchronized (controle) {
+         synchronized (filaTrabalho) {
             System.out.println(Thread.currentThread().getName() + 
-               " adicionando " + controle.getDetalheDoLink(i));
-            controle.addLinkPendente(i);
+               " adicionando o link " + link.getLink());
+            filaTrabalho.add(link);
+            filaTrabalho.notifyAll();
          }
       }
       
-      // finaliza o processamento dos links
-      ControleProcessamento.continuaProcessamento = false;
-      
+      continuaProcessamento = false;
    }
    
 }

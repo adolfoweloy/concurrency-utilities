@@ -1,22 +1,20 @@
 package br.com.devmedia.crawler.prodcons.simples;
 
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
+
+import br.com.devmedia.crawler.prodcons.model.DadosLink;
+import br.com.devmedia.crawler.prodcons.model.DaoCrawler;
+
 public class TesteProdutorConsumidorBasico {
    public static void main(String[] args) throws InterruptedException {
-      ControleProcessamento controleProcessamento = new ControleProcessamento(100);
+      Queue<DadosLink> filaTrabalho = new LinkedList<>();
+      List<DadosLink> linksDB = new DaoCrawler().getLinksCapturados(100);
       
-      // criando o produtor e consumidores
-      new Thread(new ProdutorBasico(controleProcessamento)).start();
+      new Thread(new ProdutorBasico(filaTrabalho, linksDB)).start();
       
       for (int i=0; i<3; i++)
-         new Thread(new ConsumidorBasico(controleProcessamento)).start();
-      
-      while (ControleProcessamento.continuaProcessamento == true ||
-         controleProcessamento.getTotalPendente() > 0) {
-         Thread.sleep(500);
-         System.out.println(Thread.currentThread().getName() + " aguardando...");
-      }
-      
-      System.out.printf("Total processado: %d", 
-            controleProcessamento.getTotalProcessados());
+         new Thread(new ConsumidorBasico(filaTrabalho)).start();
    }
 }
